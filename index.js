@@ -15,46 +15,6 @@ class RGB
     }
 }
 
-function randomRGB(){
-    var myRandomRGB = new RGB
-    (
-        randint(0,256),
-        randint(0,256),
-        randint(0,256)
-    );
-    console.log(myRandomRGB);
-    return myRandomRGB;
-}
-
-function randomRGBString(){
-    var myRandomRGB = randomRGB();
-    var retString = 'rgb(' + myRandomRGB.r + ','
-                           + myRandomRGB.g + ','
-                           + myRandomRGB.b
-                           + ')'
-    console.log(retString);
-    return retString;
-}
-
-function RGBToString(rgb)
-{
-    var retString = 'rgb(' + rgb.r + ','
-                           + rgb.g + ','
-                           + rgb.b + ','
-                           + ')';
-    return retString;                           
-}
-
-function randomRGBAString(a){
-    var myRandomRGB = randomRGB();
-    var retString = 'rgb(' + myRandomRGB.r + ','
-                           + myRandomRGB.g + ','
-                           + myRandomRGB.b + ','
-                           + a + ')';
-    console.log(retString);
-    return retString;
-}
-
 function RGBAToString(rgb, a)
 {
     var retString = 'rgb(' + rgb.r + ','
@@ -63,39 +23,6 @@ function RGBAToString(rgb, a)
                            + a + ')';
     return retString;                           
 }
-
-function createRect(canvas, sizeX, sizeY){
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const ctx = canvas.getContext('2d');
-    var a, b;
-    a = randint(-sizeX, width);
-    b = randint(-sizeY, height);
-    
-    ctx.fillStyle = randomRGBAString(0.5);
-    ctx.fillRect(a, b, sizeX, sizeY);
-}
-
-function createRect2(){
-    const canvas = document.getElementById('canvasMain');
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const sizeX = 50;
-    const sizeY = 50;
-
-    const ctx = canvas.getContext('2d');
-    var a, b;
-    a = randint(-sizeX, width);
-    b = randint(-sizeY, height);
-    
-    ctx.fillStyle = randomRGBAString(0.5);
-    ctx.fillRect(a, b, sizeX, sizeY);
-}
-
-var myRects = [];
 
 class Rect
 {
@@ -158,77 +85,102 @@ class Rect
     }
 }
 
-function createRect3(){
-    const canvas = document.getElementById('canvasMain');
-
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    const maxx = 100;
-    const maxy = 100;
-    const maxvelx = 5;
-    const maxvely = 5;
-
-    const xsize = randint(0,maxx);
-    const ysize = randint(0,maxy);
-
-    myRects.push(new Rect
-    (
-        randint(-xsize,width),
-        randint(-ysize,height),
-        xsize,
-        ysize,
-        randint(-maxvelx,maxvelx),
-        randint(-maxvely,maxvely),
-        randomRGB()
-    ));
-}
-
-function superCreate(){
-    for(var i = 0; i < 10; i++)
-        createRect3();
+function smooth(x)
+{
+    /* [0, 255] -> [0, 255] */
+    return 255 * Math.sin(Math.PI/512 * x);
 }
 
 async function main(){
     console.log('hi');
-    const canvas = document.getElementById('canvasMain');
-    if(!canvas){
+    const layer1 = document.getElementById('canvasLayer1');
+    const layer2 = document.getElementById('canvasLayer2');
+    if(!layer1 || !layer2){
         alert('could not load canvas. website will not load properly. sorry :(');
         return;
     }
 
-    canvas.addEventListener('click',superCreate);
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
+    const ctx1 = layer1.getContext('2d');
+    const width = layer1.width;
+    const height = layer2.height;
 
-    const maxrects = 5;
+    var rgbSky = new RGB(0,0x20,0xff);
     
-    for(var i = 0; i < maxrects; i++)
-        createRect3();
 
-    /* LOOP */
-    var loopNumber = 1;
+    var loopNumber = 0;
+    /*
+    const SkyEnum = Object.freeze(
+    {
+        'brighter':{},
+        'darker1':{},
+        'darker2':{}
+    });
+
+    rgbSky.dir = SkyEnum.brighter;
+    */
+    var t1 = 0;
+    var sinAlphaT1 = 0;
+
+    var t2 = 0;
+    var sinAlphaT2 = 0;
+
+    const FPS   = 20;
+    const MS_PER_FRAME = 1000.0 / FPS;
+
+    const PERIOD = 20.0; /* given in seconds */
+    const ALPHA  = 2*Math.PI / (PERIOD * FPS);
+    const R_AMP  = 0x80;
+    const G_AMP  = 0xd0;
+    const B_AMP  = 0xc0;
+
+    var path = 1;
+
     while(true)
     {
-        var timer = new Promise(res => setTimeout(res, 20));
-        console.log(myRects.length);
-        ctx.clearRect(0,0,width,height);
-        for(var i = 0; i < myRects.length; i++)
+        var timer = new Promise(res => setTimeout(res, MS_PER_FRAME));
+        ctx1.fillStyle = RGBAToString(rgbSky, 1.0);
+        ctx1.fillRect(0, 0, width, height);
+
+        if(path === 1)
         {
-            myRects[i].move(canvas);
-            myRects[i].draw(canvas);
+            sinAlphaT1 = Math.sin(ALPHA * t1);
+
+            rgbSky.r = R_AMP * sinAlphaT1;
+            rgbSky.g = G_AMP * sinAlphaT1;
+
+            if(sinAlphaT1 < 0)
+            {
+                rgbSky.r = 0;
+                rgbSky.g = 0;
+                t1 = 0;
+                path = 2;
+            }
+            else
+                t1++;
+        }
+        else if(path === 2)
+        {
+            sinAlphaT2 = Math.sin(ALPHA * t2);
+            rgbSky.b = 0xff - B_AMP * sinAlphaT2;
+            if(sinAlphaT2 < 0)
+            {
+                rgbSky.b = 0xff;
+                t2 = 0;
+                path = 1;
+            }
+            else
+            {
+                t2++;
+            }
         }
 
         if(loopNumber % 60 === 0)
-            for(var i = 0; i < myRects.length; i++)
-            {
-                if(myRects[i].age > myRects[i].life)
-                {
-                    myRects.splice(i, 1);
-                    i--;
-                }
-            }
+        {
+            rgbSky.r = Math.floor(rgbSky.r);
+            rgbSky.g = Math.floor(rgbSky.g);
+            rgbSky.b = Math.floor(rgbSky.b);
+            console.log(rgbSky);
+        }
 
         loopNumber++;
         await timer;
