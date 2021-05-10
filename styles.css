@@ -1,7 +1,6 @@
 #canvasContainer {
     position: relative;
-    width: 64%;
-    padding-bottom: 36%;
+    width: 100%;
     left: 50%;
     top: 50%;
     transform: translate(-50%, 0);
