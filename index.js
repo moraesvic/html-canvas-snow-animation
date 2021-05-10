@@ -123,7 +123,7 @@ const SF =
     fps:        30.0,
     msPerFrame: 33,
     minRadius:  0.5,
-    maxRadius:  1.5,
+    maxRadius:  2.0,
     minXVel:    0.0,
     maxXVel:    0.5,
     minYVel:    1.0,
@@ -166,12 +166,12 @@ class Snowflake
         ctx.strokeStyle = RGBAToString(SF.white, this.transparency);
         ctx.translate(this.x + 0.5,this.y + 0.5);
 
-        for(var i = 0; i < 6; i++)
+        for(var i = 0; i < 3; i++)
         {
-            ctx.rotate(2 * Math.PI / 6);
+            ctx.rotate(2 * Math.PI / 3);
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(this.radius * 2, 0);
+            ctx.moveTo(-this.radius, 0);
+            ctx.lineTo(this.radius, 0);
             ctx.stroke();
         }
 
