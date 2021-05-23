@@ -7,7 +7,7 @@ app.get('/', function(req,res){
     res.sendFile('index.html');
 })
 
-const PORT = 8080;
+const PORT = 80;
 
 app.listen(PORT, function(req,res){
     console.log('Listening on port ' + PORT + '...');
