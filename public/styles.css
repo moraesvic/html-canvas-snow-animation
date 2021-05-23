@@ -16,4 +16,19 @@ canvas {
 
 body {
     background-color: #d8d8d8;
+    margin: 0;
+}
+
+#controlsDiv {
+    text-align: center;
+}
+
+
+button {
+    width: 250px;
+}
+
+footer {
+    text-align: center;
+    font-size: 8pt;
 }

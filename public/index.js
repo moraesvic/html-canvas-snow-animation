@@ -273,7 +273,7 @@ function switchLightMode(){
 
         LIGHT_MODE = false;
         console.log('turning off light mode');
-        slowFast.innerHTML = 'Too slow? enable light mode 😎';
+        slowFast.innerHTML = 'Too slow? Enable light mode 😎';
     }
     else
     {
@@ -288,18 +288,28 @@ function switchLightMode(){
         
         LIGHT_MODE = true;
         console.log('enabling light mode');
-        slowFast.innerHTML = 'Too cranky? click here 🚀';
+        slowFast.innerHTML = 'Too cranky? Click here 🚀';
     }
 }
 
 /* */
+function playAudio(){
+    var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    var elem;
+    if (!isChrome)
+        elem = document.getElementById('iframeAudio');
+    else 
+        elem = document.getElementById('playAudio');
+
+    elem.parentNode.removeChild(elem);
+}
 
 async function main(){
-    console.log('hi');
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    LIGHT_MODE = true; /* to be inverted */
+    LIGHT_MODE = true; /* will be inverted */
     switchLightMode();
+    // playAudio();
     
 
     const layer1 = document.getElementById('canvasLayer1');
