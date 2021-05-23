@@ -1,3 +1,45 @@
+/* necessary class */
+
+class RGB
+{
+    constructor(r,g,b)
+    {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+}
+
+/* the following parameters can be tweaked for performance and more */
+/* null/undefined stuff is defined in switchLightMode */
+
+var GAUSSIAN_SAMPLE;
+var LOOP_CLEAR;
+
+/* Snowflake constants */
+const SF =
+{
+    fps:        null,
+    msPerFrame: null,
+    minRadius:  0.4,
+    maxRadius:  3.5,
+    minXVel:    0.0,
+    maxXVel:    0.5,
+    minYVel:    0.8,
+    maxYVel:    1.5,
+    minAmp:  10.0,
+    maxAmp:  500.0,
+    halfLife: null,
+    /* periods given in seconds */
+    minPeriod: 10.0,
+    maxPeriod: 20.0,
+    startAngle: 0,
+    endAngle:   Math.PI*2,
+    white:      Object.freeze(new RGB(0xff,0xff,0xff))
+}
+
+/* */
+
 function randint(a, b){
     /* returns random integer in [a, b[ */
     a = Math.floor(a);
@@ -10,8 +52,6 @@ function randfloat(a, b){
     return a + Math.random() * (b - a);
 }
 
-const GAUSSIAN_SAMPLE = 100;
-
 function randfloatGaussian(a, b){
     var sum = 0;
     for(var i = 0; i < GAUSSIAN_SAMPLE; i++)
@@ -23,15 +63,7 @@ function randsign(){
     return Math.random() > 0.5 ? 1 : -1;
 }
 
-class RGB
-{
-    constructor(r,g,b)
-    {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-    }
-}
+
 
 function RGBAToString(rgb, a)
 {
@@ -117,32 +149,15 @@ async function sky(canvas){
     }
 }
 
-/* Snowflake constants */
-const SF =
-{
-    fps:        30.0,
-    msPerFrame: 33,
-    minRadius:  0.4,
-    maxRadius:  2.5,
-    minXVel:    0.0,
-    maxXVel:    0.5,
-    minYVel:    1.0,
-    maxYVel:    2.0,
-    minAmp:  10.0,
-    maxAmp:  500.0,
-    /* periods given in seconds */
-    minPeriod: 10.0,
-    maxPeriod: 20.0,
-    startAngle: 0,
-    endAngle:   Math.PI*2,
-    white:      Object.freeze(new RGB(0xff,0xff,0xff))
-}
+
 
 class Snowflake
 {
-    constructor(width)
+    constructor()
     {
-        this.x = randint(0,width);
+        /* put the snowflake anywhere, horizontally */
+        /* so when we change to light mode it is not weird */
+        this.x = randint(0,960);
         this.y = 0;
         this.radius = randfloatGaussian(SF.minRadius,SF.maxRadius);
         this.transparency = 0.4 + 0.35 * Math.random();
@@ -153,7 +168,6 @@ class Snowflake
 
         const period = 2.0*Math.PI / randfloat(SF.minPeriod,SF.maxPeriod) / SF.msPerFrame;
         const amp    = randfloat(SF.minAmp,SF.maxAmp);
-        this.xPos = t => randint(0,width) + amp*Math.sin(period*t);
     }
 
     draw(ctx)
@@ -169,13 +183,7 @@ class Snowflake
         var sin, cos;
 
         for(var i = 0; i < 3; i++)
-        {   /*
-            ctx.rotate(2 * Math.PI / 3);
-            ctx.beginPath();
-            ctx.moveTo(-this.radius, 0);
-            ctx.lineTo(this.radius, 0);
-            ctx.stroke();
-            */
+        {   
             sin = Math.sin(i * 2.0/3.0 * Math.PI);
             cos = Math.cos(i * 2.0/3.0 * Math.PI);
             ctx.beginPath();
@@ -186,11 +194,6 @@ class Snowflake
 
         ctx.translate(-this.x,-this.y);
         
-        /*
-        ctx.arc(this.x, this.y, this.radius, SF.startAngle, SF.endAngle);
-        ctx.fill();
-        */
-
     }
 
     move()
@@ -199,7 +202,6 @@ class Snowflake
         this.xVel += randfloat(-SF.maxXVel, SF.maxXVel) / 10.0;
 
         this.y += this.yVel;
-        ///this.yVel += 0.05;
         if(this.radius < 1.5)
             this.y -= 0.8 * randfloat(SF.minYVel, SF.maxYVel);
 
@@ -226,9 +228,9 @@ async function snow(canvas){
             el.draw(ctx);
         });
 
-        flakes.push(new Snowflake(canvas.width));
+        flakes.push(new Snowflake());
         
-        if(loopNumber % 120 === 0)
+        if(loopNumber % LOOP_CLEAR === 0)
         {
             console.log(flakes.length);
             for(var i = 0; i < flakes.length; i++)
@@ -250,10 +252,54 @@ function resizeCanvas(){
     canvasContainer.setAttribute('style','height:' + desiredHeight + 'px');
 }
 
+/* */
+
+var LIGHT_MODE;
+
+function switchLightMode(){
+    const slowFast = document.getElementById('slowfast');
+    const layer2 = document.getElementById('canvasLayer2');
+
+    if(LIGHT_MODE === true)
+    {
+        /* turn off light mode */
+        SF.fps = 30;
+        SF.msPerFrame = 1000.0 / SF.fps;
+        SF.halfLife = 1200;
+        GAUSSIAN_SAMPLE = 100;
+        LOOP_CLEAR = 120;
+        layer2.width = 960;
+        layer2.height = 540;
+
+        LIGHT_MODE = false;
+        console.log('turning off light mode');
+        slowFast.innerHTML = 'Too slow? enable light mode 😎';
+    }
+    else
+    {
+        /* enable light mode */
+        SF.fps = 30;
+        SF.msPerFrame = 1000.0 / SF.fps;
+        SF.halfLife = 600;
+        GAUSSIAN_SAMPLE = 50;
+        LOOP_CLEAR = 60;
+        layer2.width = 800;
+        layer2.height = 450;
+        
+        LIGHT_MODE = true;
+        console.log('enabling light mode');
+        slowFast.innerHTML = 'Too cranky? click here 🚀';
+    }
+}
+
+/* */
+
 async function main(){
     console.log('hi');
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+    LIGHT_MODE = true; /* to be inverted */
+    switchLightMode();
     
 
     const layer1 = document.getElementById('canvasLayer1');
@@ -273,3 +319,4 @@ async function main(){
     
     
 }
+
