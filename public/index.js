@@ -149,7 +149,29 @@ async function sky(canvas){
     }
 }
 
+const SNOW_PNG = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 
+function loadImg(){
+    SNOW_PNG[0].src = 
+    'data:image/png;base64, \
+    iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAE0lEQVQY02NgGALg/////4eCOwGY\
+    0QP9ELsJCQAAAABJRU5ErkJggg==';
+    SNOW_PNG[1].src = SNOW_PNG[0].src;
+    SNOW_PNG[2].src = 
+    'data:image/png;base64, \
+    iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAHklEQVQY02NgGFhw8eaj/+hijLgU\
+    6KvLMZJkEp0BAEIvCxj/fUm4AAAAAElFTkSuQmCC';
+    SNOW_PNG[3].src = SNOW_PNG[4].src = SNOW_PNG[5].src = SNOW_PNG[2].src;
+    SNOW_PNG[6].src = 
+    'data:image/png;base64, \
+    iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAMElEQVQY02NgIAfMP/joP9GSeBUf\
+    vIgpyYSs6+DFR/8FOBAKcZqGzSTy3IRXEh8AAPS2J+8YBC2QAAAAAElFTkSuQmCC';
+    SNOW_PNG[7].src = 
+    'data:image/png;base64, \
+    iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAMklEQVQY02NgQAMHLz76z4AN4JLA\
+    EJ9/ECKAThMPYEbCdF68icrH6UacgKCbiPYdPgkAKXY5LLvUBBYAAAAASUVORK5CYII=';
+
+}
 
 class Snowflake
 {
@@ -159,15 +181,16 @@ class Snowflake
         /* so when we change to light mode it is not weird */
         this.x = randint(0,960);
         this.y = 0;
-        this.radius = randfloatGaussian(SF.minRadius,SF.maxRadius);
+        this.radius = randfloat(SF.minRadius,SF.maxRadius);
+        // console.log(this.radius);
+        this.size   = Math.floor((this.radius - SF.minRadius) / (SF.maxRadius - SF.minRadius) * SNOW_PNG.length);
+        // console.log(SNOW_PNG.length);
         this.transparency = 0.4 + 0.35 * Math.random();
 
         this.t = 0;
         this.xVel = randsign() * randfloat(SF.minXVel, SF.maxXVel);
         this.yVel = randfloat(SF.minYVel, SF.maxYVel);
 
-        const period = 2.0*Math.PI / randfloat(SF.minPeriod,SF.maxPeriod) / SF.msPerFrame;
-        const amp    = randfloat(SF.minAmp,SF.maxAmp);
     }
 
     draw(ctx)
@@ -175,7 +198,10 @@ class Snowflake
         if(this.x > 1.1 * canvasWidth || this.x < -0.1 * canvasWidth
             || this.y > 1.1 * canvasHeight || this.y < -0.1 * canvasHeight)
                 return;
-            
+        
+        ctx.globalAlpha = this.transparency;
+        ctx.drawImage(SNOW_PNG[this.size],this.x,this.y);
+        /*
         ctx.fillStyle = RGBAToString(SF.white, this.transparency);
         ctx.strokeStyle = RGBAToString(SF.white, this.transparency);
         ctx.translate(this.x,this.y);
@@ -193,6 +219,7 @@ class Snowflake
         }
 
         ctx.translate(-this.x,-this.y);
+        */
         
     }
 
@@ -307,11 +334,10 @@ function playAudio(){
 async function main(){
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+    loadImg();
     LIGHT_MODE = true; /* will be inverted */
     switchLightMode();
-    // playAudio();
     
-
     const layer1 = document.getElementById('canvasLayer1');
     const layer2 = document.getElementById('canvasLayer2');
     if(!layer1 || !layer2){
