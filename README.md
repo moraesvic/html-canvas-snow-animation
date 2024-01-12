@@ -4,6 +4,6 @@ This is an animation done with HTML Canvas used as a learning project for animat
 
 To try it out, just deliver the contents of the `public` folder with a static server.
 
-**Bonus points**: the animation also comes with an audio file to get you more into a wintery mood.
+**Bonus points**: the animation also comes with an audio file to get you more into a wintery mood. The audio track is "Mr. Moustafa", by Alexandre Desplat and is part of the original soundtrack of The Grand Budapest Hotel (2014). All rights go to the original copyright holders.
 
 **Victor Moraes, May 23rd, 2021**
